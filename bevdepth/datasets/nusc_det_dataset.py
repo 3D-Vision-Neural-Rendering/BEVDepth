@@ -9,6 +9,7 @@ from nuscenes.utils.geometry_utils import view_points
 from PIL import Image
 from pyquaternion import Quaternion
 from torch.utils.data import Dataset
+from pdb import set_trace
 
 __all__ = ['NuscDetDataset']
 
@@ -396,15 +397,15 @@ class NuscDetDataset(Dataset):
         sweep_sensor2sensor_mats = list()
         sweep_timestamps = list()
         sweep_lidar_depth = list()
-        if self.return_depth or self.use_fusion:
-            sweep_lidar_points = list()
-            for lidar_info in lidar_infos:
-                lidar_path = lidar_info['LIDAR_TOP']['filename']
-                lidar_points = np.fromfile(os.path.join(
-                    self.data_root, lidar_path),
-                                           dtype=np.float32,
-                                           count=-1).reshape(-1, 5)[..., :4]
-                sweep_lidar_points.append(lidar_points)
+        # if self.return_depth or self.use_fusion:
+        #     sweep_lidar_points = list()
+        #     for lidar_info in lidar_infos:
+        #         lidar_path = lidar_info['LIDAR_TOP']['filename']
+        #         lidar_points = np.fromfile(os.path.join(
+        #             self.data_root, lidar_path),
+        #                                    dtype=np.float32,
+        #                                    count=-1).reshape(-1, 5)[..., :4]
+        #         sweep_lidar_points.append(lidar_points)
         for cam in cams:
             imgs = list()
             sensor2ego_mats = list()
@@ -479,9 +480,11 @@ class NuscDetDataset(Dataset):
                 intrin_mat[:3, :3] = torch.Tensor(
                     cam_info[cam]['calibrated_sensor']['camera_intrinsic'])
                 if self.return_depth and (self.use_fusion or sweep_idx == 0):
-                    point_depth = self.get_lidar_depth(
-                        sweep_lidar_points[sweep_idx], img,
-                        lidar_infos[sweep_idx], cam_info[cam])
+                    # point_depth = self.get_lidar_depth(
+                    #     sweep_lidar_points[sweep_idx], img,
+                    #     lidar_infos[sweep_idx], cam_info[cam])
+                    point_depth_path = os.path.join(self.data_root, cam_info[cam]['filename'].replace('samples/','depths/').replace('.jpg','.npy'))
+                    point_depth = np.load(point_depth_path)
                     point_depth_augmented = depth_transform(
                         point_depth, resize, self.ida_aug_conf['final_dim'],
                         crop, flip, rotate_ida)
